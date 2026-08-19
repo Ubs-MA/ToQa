@@ -1,0 +1,356 @@
+openapi: 3.0.3
+info:
+  title: ToQa API — Auth, Users & Security
+  description: >
+    Authentication, user profile, and admin user-management endpoints for the
+    ToQa e-commerce backend. Other feature areas (products, cart, orders, etc.)
+    are documented separately as they land.
+  version: "1.0.0"
+
+servers:
+  - url: /api/v1
+    description: Current API version
+
+tags:
+  - name: Auth
+    description: Registration, login, logout, session
+  - name: Users
+    description: Authenticated user's own profile
+  - name: Admin - Users
+    description: Admin-only customer management
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new customer account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "409":
+          description: Email already in use
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Log in with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Account deactivated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Log out (clears the auth cookie)
+      responses:
+        "200":
+          description: Logout successful
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Get the currently authenticated user
+      security:
+        - bearerAuth: []
+          cookieAuth: []
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /users/me:
+    get:
+      tags: [Users]
+      summary: Get my profile
+      security:
+        - bearerAuth: []
+          cookieAuth: []
+      responses:
+        "200":
+          description: Profile retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /users/me/password:
+    patch:
+      tags: [Users]
+      summary: Change my password
+      security:
+        - bearerAuth: []
+          cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordRequest"
+      responses:
+        "200":
+          description: Password updated
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          description: Not logged in, or current password incorrect
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/users:
+    get:
+      tags: [Admin - Users]
+      summary: List customers/users (admin only)
+      security:
+        - bearerAuth: []
+          cookieAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100 }
+        - in: query
+          name: role
+          schema: { type: string, enum: [customer, admin] }
+        - in: query
+          name: isActive
+          schema: { type: boolean }
+        - in: query
+          name: search
+          schema: { type: string }
+      responses:
+        "200":
+          description: Users retrieved
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/users/{userId}:
+    get:
+      tags: [Admin - Users]
+      summary: Get a single user by id (admin only)
+      security:
+        - bearerAuth: []
+          cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/UserIdParam"
+      responses:
+        "200":
+          description: User retrieved
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: User not found
+
+  /admin/users/{userId}/status:
+    patch:
+      tags: [Admin - Users]
+      summary: Activate or deactivate a user (admin only)
+      security:
+        - bearerAuth: []
+          cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/UserIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [isActive]
+              properties:
+                isActive:
+                  type: boolean
+      responses:
+        "200":
+          description: Status updated
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: User not found
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+
+  parameters:
+    UserIdParam:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: MongoDB ObjectId of the user
+
+  responses:
+    ValidationError:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: Not authenticated / invalid or expired token
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: Authenticated but not authorized for this action
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [name, email, password]
+      properties:
+        name: { type: string, example: "Sara Ahmed" }
+        email: { type: string, format: email }
+        password: { type: string, format: password, minLength: 8 }
+        phone: { type: string, example: "+201234567890" }
+        address: { type: string }
+        governorate: { type: string, example: "Cairo" }
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, format: password }
+
+    ChangePasswordRequest:
+      type: object
+      required: [currentPassword, newPassword, confirmNewPassword]
+      properties:
+        currentPassword: { type: string, format: password }
+        newPassword: { type: string, format: password, minLength: 8 }
+        confirmNewPassword: { type: string, format: password }
+
+    User:
+      type: object
+      properties:
+        _id: { type: string }
+        name: { type: string }
+        email: { type: string }
+        phone: { type: string, nullable: true }
+        role: { type: string, enum: [customer, admin] }
+        address: { type: string, nullable: true }
+        governorate: { type: string, nullable: true }
+        isActive: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    UserResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            user:
+              $ref: "#/components/schemas/User"
+
+    AuthResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            user:
+              $ref: "#/components/schemas/User"
+            token:
+              type: string
+              description: JWT — also set as an httpOnly cookie named `token`
+
+    ErrorResponse:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        message: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              message: { type: string }
