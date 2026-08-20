@@ -1,0 +1,10 @@
+const router = require("express").Router();
+const controller = require("../controllers/user.controller");
+const { authenticate } = require("../middlewares/auth.middleware");
+const validate = require("../middlewares/validate.middleware");
+const { updateProfileValidator, changePasswordValidator } = require("../validators/user.validator");
+router.use(authenticate);
+router.get("/me", controller.getMe);
+router.patch("/me", updateProfileValidator, validate, controller.updateMe);
+router.patch("/me/password", changePasswordValidator, validate, controller.changePassword);
+module.exports = router;

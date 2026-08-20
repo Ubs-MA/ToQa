@@ -1,0 +1,10 @@
+const asyncHandler = require("../utils/asyncHandler");
+const ApiResponse = require("../utils/ApiResponse");
+const service = require("../services/product.service");
+const list = asyncHandler(async (req, res) => res.json(new ApiResponse(200, await service.listProducts(req.query, req.user?.role === "admin" && req.query.all === "true"))));
+const get = asyncHandler(async (req, res) => res.json(new ApiResponse(200, await service.getProduct(req.params.productId))));
+const create = asyncHandler(async (req, res) => res.status(201).json(new ApiResponse(201, await service.createProduct(req.body), "Product created")));
+const update = asyncHandler(async (req, res) => res.json(new ApiResponse(200, await service.updateProduct(req.params.productId, req.body), "Product updated")));
+const remove = asyncHandler(async (req, res) => res.json(new ApiResponse(200, await service.deactivateProduct(req.params.productId), "Product deactivated")));
+const status = asyncHandler(async (req, res) => res.json(new ApiResponse(200, await service.updateProduct(req.params.productId, { isActive: req.body.isActive }), "Product status updated")));
+module.exports = { list, get, create, update, remove, status };

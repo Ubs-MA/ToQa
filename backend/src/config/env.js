@@ -30,7 +30,7 @@ const missingVariables = requiredVariables
   .filter(([, value]) => !value)
   .map(([name]) => name);
 
-if (missingVariables.length > 0) {
+if (env.nodeEnv !== "test" && missingVariables.length > 0) {
   throw new Error(
     `Missing required environment variables: ${missingVariables.join(", ")}`,
   );

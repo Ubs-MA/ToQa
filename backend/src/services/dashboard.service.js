@@ -2,9 +2,8 @@ const Order = require("../models/Order");
 const Product = require("../models/Product");
 const ProductVariant = require("../models/ProductVariant");
 const env = require("../config/env");
-
-const PAID_STATUS = "paid";
-const CANCELLED_STATUS = "cancelled";
+const PAYMENT_STATUS = require("../constants/paymentStatus");
+const ORDER_STATUS = require("../constants/orderStatus");
 const RECENT_ORDERS_LIMIT = 5;
 
 const getDashboardStats = async () => {
@@ -40,9 +39,9 @@ const getDashboardStats = async () => {
     Order.aggregate([
       {
         $match: {
-          paymentStatus: PAID_STATUS,
+          paymentStatus: PAYMENT_STATUS.PAID,
           orderStatus: {
-            $ne: CANCELLED_STATUS,
+            $ne: ORDER_STATUS.CANCELLED,
           },
         },
       },

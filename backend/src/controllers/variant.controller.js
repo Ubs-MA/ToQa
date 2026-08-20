@@ -1,0 +1,10 @@
+const asyncHandler = require("../utils/asyncHandler");
+const ApiResponse = require("../utils/ApiResponse");
+const service = require("../services/variant.service");
+const list = asyncHandler(async (req, res) => res.json(new ApiResponse(200, await service.listVariants(req.params.productId, req.user?.role === "admin"))));
+const create = asyncHandler(async (req, res) => res.status(201).json(new ApiResponse(201, await service.createVariant(req.params.productId, req.body), "Variant created")));
+const update = asyncHandler(async (req, res) => res.json(new ApiResponse(200, await service.updateVariant(req.params.variantId, req.body), "Variant updated")));
+const remove = asyncHandler(async (req, res) => res.json(new ApiResponse(200, await service.deactivateVariant(req.params.variantId), "Variant deactivated")));
+const stock = asyncHandler(async (req, res) => res.json(new ApiResponse(200, await service.setStock(req.params.variantId, req.body.stock), "Stock updated")));
+const lowStock = asyncHandler(async (req, res) => res.json(new ApiResponse(200, await service.lowStock(Number(req.query.threshold) || 5))));
+module.exports = { list, create, update, remove, stock, lowStock };
