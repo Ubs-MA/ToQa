@@ -1,0 +1,13 @@
+const router = require("express").Router();
+const productController = require("../controllers/product.controller");
+const variantController = require("../controllers/variant.controller");
+const reviewController = require("../controllers/review.controller");
+const { authenticate } = require("../middlewares/auth.middleware");
+const validate = require("../middlewares/validate.middleware");
+const { createReviewValidator } = require("../validators/review.validator");
+router.get("/", productController.list);
+router.get("/:productId/variants", variantController.list);
+router.get("/:productId/reviews", reviewController.listProduct);
+router.post("/:productId/reviews", authenticate, createReviewValidator, validate, reviewController.create);
+router.get("/:productId", productController.get);
+module.exports = router;

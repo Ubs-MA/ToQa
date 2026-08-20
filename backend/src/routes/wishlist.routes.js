@@ -1,0 +1,11 @@
+const router = require("express").Router();
+const controller = require("../controllers/wishlist.controller");
+const { authenticate } = require("../middlewares/auth.middleware");
+const validate = require("../middlewares/validate.middleware");
+const { productIdValidator } = require("../validators/wishlist.validator");
+router.use(authenticate);
+router.get("/", controller.get);
+router.post("/:productId", productIdValidator, validate, controller.add);
+router.delete("/:productId", productIdValidator, validate, controller.remove);
+router.delete("/", controller.clear);
+module.exports = router;
