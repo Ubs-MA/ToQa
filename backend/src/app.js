@@ -22,6 +22,7 @@ app.use(
   cors({
     origin: env.clientOrigin,
     credentials: true,
+    exposedHeaders: ["x-session-id"],
   })
 );
 
