@@ -1,0 +1,14 @@
+const router = require("express").Router();
+const controller = require("../controllers/cart.controller");
+const { optionalAuthenticate } = require("../middlewares/auth.middleware");
+const validate = require("../middlewares/validate.middleware");
+const { addItemValidator, updateItemValidator, couponCodeValidator } = require("../validators/cart.validator");
+router.use(optionalAuthenticate);
+router.get("/", controller.get);
+router.post("/items", addItemValidator, validate, controller.add);
+router.patch("/items/:variantId", updateItemValidator, validate, controller.update);
+router.delete("/items/:variantId", controller.remove);
+router.delete("/", controller.clear);
+router.post("/coupon", couponCodeValidator, validate, controller.applyCoupon);
+router.delete("/coupon", controller.removeCoupon);
+module.exports = router;

@@ -1,0 +1,11 @@
+const router = require("express").Router();
+const controller = require("../controllers/auth.controller");
+const { authenticate } = require("../middlewares/auth.middleware");
+const { authLimiter } = require("../middlewares/rateLimit.middleware");
+const validate = require("../middlewares/validate.middleware");
+const { registerValidator, loginValidator } = require("../validators/auth.validator");
+router.post("/register", authLimiter, registerValidator, validate, controller.register);
+router.post("/login", authLimiter, loginValidator, validate, controller.login);
+router.post("/logout", controller.logout);
+router.get("/me", authenticate, controller.me);
+module.exports = router;

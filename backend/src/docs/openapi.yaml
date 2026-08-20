@@ -1,0 +1,252 @@
+openapi: 3.0.3
+info:
+  title: ToQa E-Commerce API
+  version: 1.0.0
+  description: REST API for the ToQa modest-clothing store.
+servers:
+  - url: http://localhost:5000/api/v1
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        message: { type: string }
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200": { description: API is healthy }
+  /auth/register:
+    post:
+      summary: Register a customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name: { type: string }
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+                phone: { type: string }
+      responses:
+        "201": { description: Registered }
+        "422": { description: Validation error }
+  /auth/login:
+    post:
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        "200": { description: Authenticated }
+        "401": { description: Invalid credentials }
+  /products:
+    get:
+      summary: Search, filter, sort, and paginate products
+      parameters:
+        - { in: query, name: search, schema: { type: string } }
+        - { in: query, name: category, schema: { type: string } }
+        - { in: query, name: size, schema: { type: string } }
+        - { in: query, name: color, schema: { type: string } }
+        - { in: query, name: minPrice, schema: { type: number } }
+        - { in: query, name: maxPrice, schema: { type: number } }
+        - { in: query, name: page, schema: { type: integer } }
+        - { in: query, name: limit, schema: { type: integer } }
+      responses:
+        "200": { description: Product page }
+  /cart:
+    get:
+      summary: Get or create cart
+      parameters:
+        - { in: header, name: x-session-id, schema: { type: string } }
+      responses:
+        "200": { description: Cart }
+  /checkout:
+    post:
+      summary: Place an order from the current cart
+      responses:
+        "201": { description: Order created }
+        "409": { description: Stock conflict }
+  /admin/dashboard:
+    get:
+      summary: Get admin dashboard statistics
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Dashboard statistics }
+        "403": { description: Admin only }
+  /auth/logout:
+    post:
+      summary: Clear the authentication cookie
+      responses:
+        "200": { description: Logged out }
+  /auth/me:
+    get:
+      summary: Get the authenticated user
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: Current user }
+        "401": { description: Authentication required }
+  /users/me:
+    get:
+      summary: Get customer profile
+      security: [{ bearerAuth: [] }]
+      responses: { "200": { description: Profile } }
+    patch:
+      summary: Update customer profile
+      security: [{ bearerAuth: [] }]
+      responses: { "200": { description: Updated profile } }
+  /users/me/password:
+    patch:
+      summary: Change password
+      security: [{ bearerAuth: [] }]
+      responses: { "200": { description: Password changed } }
+  /categories:
+    get:
+      summary: List active categories
+      responses: { "200": { description: Categories } }
+  /categories/{categoryId}:
+    get:
+      summary: Get a category
+      parameters: [{ in: path, name: categoryId, required: true, schema: { type: string } }]
+      responses: { "200": { description: Category } }
+  /products/{productId}:
+    get:
+      summary: Get product details by ID or slug
+      parameters: [{ in: path, name: productId, required: true, schema: { type: string } }]
+      responses: { "200": { description: Product and variants } }
+  /products/{productId}/variants:
+    get:
+      summary: List product variants
+      parameters: [{ in: path, name: productId, required: true, schema: { type: string } }]
+      responses: { "200": { description: Variants } }
+  /products/{productId}/reviews:
+    get:
+      summary: List approved reviews
+      parameters: [{ in: path, name: productId, required: true, schema: { type: string } }]
+      responses: { "200": { description: Reviews } }
+    post:
+      summary: Create a purchased-product review
+      security: [{ bearerAuth: [] }]
+      parameters: [{ in: path, name: productId, required: true, schema: { type: string } }]
+      responses: { "201": { description: Review created } }
+  /cart/items:
+    post:
+      summary: Add a variant to the cart
+      responses: { "200": { description: Updated cart }, "409": { description: Insufficient stock } }
+  /cart/items/{variantId}:
+    patch:
+      summary: Change cart item quantity
+      parameters: [{ in: path, name: variantId, required: true, schema: { type: string } }]
+      responses: { "200": { description: Updated cart } }
+    delete:
+      summary: Remove a cart item
+      parameters: [{ in: path, name: variantId, required: true, schema: { type: string } }]
+      responses: { "200": { description: Updated cart } }
+  /cart/coupon:
+    post:
+      summary: Apply a coupon
+      responses: { "200": { description: Coupon applied } }
+    delete:
+      summary: Remove the applied coupon
+      responses: { "200": { description: Coupon removed } }
+  /orders:
+    get:
+      summary: List the customer's orders
+      security: [{ bearerAuth: [] }]
+      responses: { "200": { description: Orders } }
+  /orders/{orderId}:
+    get:
+      summary: Get the customer's order
+      security: [{ bearerAuth: [] }]
+      parameters: [{ in: path, name: orderId, required: true, schema: { type: string } }]
+      responses: { "200": { description: Order } }
+  /orders/{orderId}/cancel:
+    patch:
+      summary: Cancel a pending or confirmed order
+      security: [{ bearerAuth: [] }]
+      parameters: [{ in: path, name: orderId, required: true, schema: { type: string } }]
+      responses: { "200": { description: Cancelled order } }
+  /wishlist:
+    get:
+      summary: Get wishlist
+      security: [{ bearerAuth: [] }]
+      responses: { "200": { description: Wishlist } }
+    delete:
+      summary: Clear wishlist
+      security: [{ bearerAuth: [] }]
+      responses: { "200": { description: Empty wishlist } }
+  /wishlist/{productId}:
+    post:
+      summary: Add product to wishlist
+      security: [{ bearerAuth: [] }]
+      parameters: [{ in: path, name: productId, required: true, schema: { type: string } }]
+      responses: { "200": { description: Wishlist } }
+    delete:
+      summary: Remove product from wishlist
+      security: [{ bearerAuth: [] }]
+      parameters: [{ in: path, name: productId, required: true, schema: { type: string } }]
+      responses: { "200": { description: Wishlist } }
+  /coupons/validate:
+    post:
+      summary: Validate a coupon against a subtotal
+      responses: { "200": { description: Coupon and discount } }
+  /uploads/product-image:
+    post:
+      summary: Upload a product image
+      security: [{ bearerAuth: [] }]
+      responses: { "201": { description: Image URL } }
+  /admin/products:
+    get:
+      summary: List all products for administration
+      security: [{ bearerAuth: [] }]
+      responses: { "200": { description: Products } }
+    post:
+      summary: Create product
+      security: [{ bearerAuth: [] }]
+      responses: { "201": { description: Product created } }
+  /admin/inventory/low-stock:
+    get:
+      summary: List low and zero-stock variants
+      security: [{ bearerAuth: [] }]
+      responses: { "200": { description: Inventory alerts } }
+  /admin/orders:
+    get:
+      summary: List all orders
+      security: [{ bearerAuth: [] }]
+      responses: { "200": { description: Orders } }
+  /admin/coupons:
+    get:
+      summary: List coupons
+      security: [{ bearerAuth: [] }]
+      responses: { "200": { description: Coupons } }
+    post:
+      summary: Create coupon
+      security: [{ bearerAuth: [] }]
+      responses: { "201": { description: Coupon created } }
+  /admin/users:
+    get:
+      summary: List customers and admins
+      security: [{ bearerAuth: [] }]
+      responses: { "200": { description: Users } }
+  /admin/reviews:
+    get:
+      summary: List reviews for moderation
+      security: [{ bearerAuth: [] }]
+      responses: { "200": { description: Reviews } }
