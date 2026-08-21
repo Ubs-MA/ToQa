@@ -38,6 +38,7 @@ router.get("/colors", attribute.list("colors"));
 router.post("/colors", attribute.create("colors"));
 router.patch("/colors/:id", attribute.update("colors"));
 router.delete("/colors/:id", attribute.remove("colors"));
+router.get("/inventory", variant.inventory);
 router.get("/inventory/low-stock", variant.lowStock);
 router.get("/orders", admin.listOrders);
 router.get("/orders/:orderId", admin.getOrder);

@@ -7,8 +7,14 @@ export default function Cart() {
   const [cart, setCart] = useState(null);
   const [coupon, setCoupon] = useState("");
   const [error, setError] = useState("");
-  const load = () => api("/cart").then((data) => setCart(data.cart)).catch((e) => setError(e.message));
-  useEffect(load, []);
+  const load = () => {
+    api("/cart")
+      .then((data) => setCart(data.cart))
+      .catch((e) => setError(e.message));
+  };
+  useEffect(() => {
+    load();
+  }, []);
   const change = async (variantId, quantity) => { if (quantity < 1) return; const data = await api(`/cart/items/${variantId}`, { method: "PATCH", body: JSON.stringify({ quantity }) }); setCart(data.cart); };
   const remove = async (variantId) => { const data = await api(`/cart/items/${variantId}`, { method: "DELETE" }); setCart(data.cart); };
   const apply = async () => { try { setError(""); const data = await api("/cart/coupon", { method: "POST", body: JSON.stringify({ code: coupon }) }); setCart(data.cart); } catch (e) { setError(e.message); } };

@@ -14,5 +14,9 @@ const updateVariant = async (id, payload) => {
 };
 const deactivateVariant = (id) => updateVariant(id, { isActive: false });
 const setStock = (id, stock) => updateVariant(id, { stock });
+const inventory = () => ProductVariant.find()
+  .populate("product", "name slug images")
+  .sort({ updatedAt: -1 })
+  .lean();
 const lowStock = (threshold) => ProductVariant.find({ isActive: true, stock: { $gte: 0, $lte: threshold } }).populate("product", "name slug images").sort({ stock: 1 }).lean();
-module.exports = { listVariants, createVariant, updateVariant, deactivateVariant, setStock, lowStock };
+module.exports = { listVariants, createVariant, updateVariant, deactivateVariant, setStock, inventory, lowStock };
