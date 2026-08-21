@@ -336,6 +336,18 @@ feature/* ──► develop ──► main
 - Merge only stable, trainer-ready releases into `main`.
 - Never force-push a shared branch or commit real secrets.
 
+Project Team
+
+| Team Member       | Main Responsibility                                 |
+| ----------------- | --------------------------------------------------- |
+| Abdulrahman Nabil | Authentication, Users, and Security                 |
+| Ahmed Bakr        | Products, Categories, and Variants                  |
+| Ahmed Ashraf      | Inventory, Cart, Search, and Filtering              |
+| Emad Memi         | Checkout, Orders, and Payment                       |
+| Kero Reda         | Coupons, Wishlist, and Reviews                      |
+| Mohamed Abbas     | Admin Dashboard, Integration, QA, and Documentation |
+
+
 ## Project Scope
 
 ToQa intentionally excludes multi-vendor marketplace logic, real payment gateways, carrier integrations, microservices, and advanced business intelligence. Electronic Wallet is stored as a simple reference-based business flow; no external payment transaction is performed.
