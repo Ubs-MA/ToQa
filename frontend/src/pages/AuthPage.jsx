@@ -3,8 +3,63 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth";
 
 export default function AuthPage({ mode }) {
-  const isRegister=mode==="register"; const {login,register}=useAuth(); const navigate=useNavigate(); const location=useLocation();
-  const [form,setForm]=useState({name:"",email:"",phone:"",password:""}); const [error,setError]=useState(""); const [busy,setBusy]=useState(false);
-  const submit=async(e)=>{e.preventDefault();setBusy(true);setError("");try{await (isRegister?register(form):login({email:form.email,password:form.password}));navigate(location.state?.from?.pathname||"/");}catch(err){setError(err.message);}finally{setBusy(false);}};
-  return <section className="form-page auth-page"><div className="auth-art"><p>Grace is not an occasion.<br/><em>It is a way of moving.</em></p></div><form className="form-card" onSubmit={submit}><p className="eyebrow">{isRegister?"Join ToQa":"Welcome back"}</p><h1>{isRegister?"Create your account":"Sign in"}</h1>{isRegister&&<><label className="field"><span>Name</span><input required value={form.name} onChange={(e)=>setForm({...form,name:e.target.value})}/></label><label className="field"><span>Phone</span><input value={form.phone} onChange={(e)=>setForm({...form,phone:e.target.value})}/></label></>}<label className="field"><span>Email</span><input required type="email" value={form.email} onChange={(e)=>setForm({...form,email:e.target.value})}/></label><label className="field"><span>Password</span><input required minLength="8" type="password" value={form.password} onChange={(e)=>setForm({...form,password:e.target.value})}/></label>{error&&<p className="form-error">{error}</p>}<button className="button dark full" disabled={busy}>{busy?"Please wait…":isRegister?"Create account":"Sign in"}</button><p className="form-switch">{isRegister?"Already have an account?":"New to ToQa?"} <Link to={isRegister?"/login":"/register"}>{isRegister?"Sign in":"Create one"}</Link></p></form></section>;
+  const isRegister = mode === "register";
+  const { login, register } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "" });
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const submit = async (event) => {
+    event.preventDefault();
+    setBusy(true);
+    setError("");
+    try {
+      await (isRegister ? register(form) : login({ email: form.email, password: form.password }));
+      navigate(location.state?.from?.pathname || "/");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="form-page auth-page">
+      <div className="auth-art">
+        <p>Grace is not an occasion.<br /><em>It is a way of moving.</em></p>
+      </div>
+      <form className="form-card" onSubmit={submit}>
+        <p className="eyebrow">{isRegister ? "Join ToQa" : "Welcome back"}</p>
+        <h1>{isRegister ? "Create your account" : "Sign in"}</h1>
+        {isRegister && (
+          <>
+            <label className="field">
+              <span>Name</span>
+              <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            </label>
+            <label className="field">
+              <span>Phone</span>
+              <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            </label>
+          </>
+        )}
+        <label className="field">
+          <span>Email</span>
+          <input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+        </label>
+        <label className="field">
+          <span>Password</span>
+          <input required minLength="8" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+        </label>
+        {error && <p className="form-error">{error}</p>}
+        <button className="button dark full" disabled={busy}>{busy ? "Please wait..." : isRegister ? "Create account" : "Sign in"}</button>
+        <p className="form-switch">
+          {isRegister ? "Already have an account?" : "New to ToQa?"}{" "}
+          <Link to={isRegister ? "/login" : "/register"}>{isRegister ? "Sign in" : "Create one"}</Link>
+        </p>
+      </form>
+    </section>
+  );
 }

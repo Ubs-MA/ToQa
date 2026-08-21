@@ -9,9 +9,9 @@ export async function api(path, options = {}) {
   if (sessionId) headers["x-session-id"] = sessionId;
 
   const response = await fetch(`${API_URL}${path}`, { ...options, headers, credentials: "include" });
-  const returnedSession = response.headers.get("x-session-id");
-  if (returnedSession) localStorage.setItem("toqa_session", returnedSession);
   const payload = await response.json().catch(() => ({}));
+  const returnedSession = response.headers.get("x-session-id") || payload.data?.sessionId;
+  if (returnedSession) localStorage.setItem("toqa_session", returnedSession);
   if (!response.ok) {
     const error = new Error(payload.message || "Something went wrong");
     error.status = response.status;
